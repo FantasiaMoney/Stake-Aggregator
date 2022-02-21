@@ -20,7 +20,7 @@ const UniswapV2Pair = artifacts.require('./UniswapV2Pair.sol')
 const WETH = artifacts.require('./WETH9.sol')
 const TOKEN = artifacts.require('./TOKEN.sol')
 const StakeClaim = artifacts.require('./StakingRewards.sol')
-
+const Aggregator = artifacts.require('./StakeAggregator.sol')
 
 const Beneficiary = "0x6ffFe11A5440fb275F30e0337Fc296f938a287a5"
 
@@ -32,7 +32,8 @@ let uniswapV2Factory,
     pairDAI,
     pairUSDT,
     stakeDAI,
-    stakeUSDT
+    stakeUSDT,
+    aggregator
 
 
 contract('Aggregator-claim-able-test', function([userOne, userTwo, userThree]) {
@@ -42,6 +43,8 @@ contract('Aggregator-claim-able-test', function([userOne, userTwo, userThree]) {
     uniswapV2Factory = await UniswapV2Factory.new(userOne)
     weth = await WETH.new()
     uniswapV2Router = await UniswapV2Router.new(uniswapV2Factory.address, weth.address)
+
+    aggregator = await Aggregator.new(uniswapV2Router.address)
 
     dai = await TOKEN.new("DAI", "DAI", toWei(String(100000)))
     usdt = await TOKEN.new("USDT", "USDT", toWei(String(100000)))
@@ -94,13 +97,17 @@ contract('Aggregator-claim-able-test', function([userOne, userTwo, userThree]) {
     // add some rewards to usdt stake
     usdt.transfer(stakeUSDT.address, toWei(String(1)))
     stakeUSDT.notifyRewardAmount(toWei(String(1)))
+
+    // add tokens
+    await aggregator.addAsset(pairDAI.address, 2)
+    await aggregator.addAsset(pairUSDT.address, 2)
   }
 
   beforeEach(async function() {
     await deployContracts()
   })
 
-  describe('INIT stake', function() {
+  describe('INIT stakes', function() {
     it('Correct init DAI stake', async function() {
       assert.equal(await stakeDAI.rewardsToken(), dai.address)
       assert.equal(await stakeDAI.stakingToken(), pairDAI.address)
@@ -109,6 +116,16 @@ contract('Aggregator-claim-able-test', function([userOne, userTwo, userThree]) {
     it('Correct init USDT stake', async function() {
       assert.equal(await stakeUSDT.rewardsToken(), usdt.address)
       assert.equal(await stakeUSDT.stakingToken(), pairUSDT.address)
+    })
+  })
+
+
+  describe('Aggregator', function() {
+    it('Convert pools to ETH should works correct', async function() {
+      console.log(
+        Number(await aggregator.getValueInETH(pairDAI.address, toWei("1"))),
+        Number(await aggregator.getValueInETH(pairUSDT.address, toWei("1")))
+      )
     })
   })
 
