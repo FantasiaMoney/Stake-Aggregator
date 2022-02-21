@@ -101,6 +101,10 @@ contract('Aggregator-claim-able-test', function([userOne, userTwo, userThree]) {
     // add tokens
     await aggregator.addAsset(pairDAI.address, 2)
     await aggregator.addAsset(pairUSDT.address, 2)
+
+    // add stakes
+    await aggregator.addStake(stakeDAI.address)
+    await aggregator.addStake(stakeUSDT.address)
   }
 
   beforeEach(async function() {
@@ -126,6 +130,17 @@ contract('Aggregator-claim-able-test', function([userOne, userTwo, userThree]) {
         Number(await aggregator.getValueInETH(pairDAI.address, toWei("1"))),
         Number(await aggregator.getValueInETH(pairUSDT.address, toWei("1")))
       )
+    })
+
+    it('Deposit should works ', async function() {
+      assert.equal(await aggregator.sharesOf(userOne), 0)
+
+      const toDeposit = await pairDAI.balanceOf(userOne)
+      await pairDAI.approve(aggregator.address, toDeposit)
+
+      await aggregator.deposit(pairDAI.address, toDeposit)
+
+      assert.notEqual(await aggregator.sharesOf(userOne), 0)
     })
   })
 
