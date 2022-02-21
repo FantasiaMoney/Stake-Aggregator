@@ -14,8 +14,14 @@ contract StakeAggregator is Ownable {
   address[] public stakes;
 
   mapping(address => uint256) public sharesOf;
+  mapping(address => uint256) public tokenTypes;
   mapping(address => bool) public permittedAsset;
   mapping(address => bool) public permittedStake;
+
+  enum TOKEN_TYPES {
+    ERC20,
+    UNI_POOL
+  }
 
 
   function getValueInETH(address asset, uint256 amount)
@@ -62,9 +68,10 @@ contract StakeAggregator is Ownable {
 
   // OnlyOwner functions
 
-  function addAsset(address asset) external onlyOwner {
+  function addAsset(address asset, uint256 tokenType) external onlyOwner {
     assets.push(asset);
     permittedAsset[asset] = true;
+    tokenTypes[asset] = tokenType;
   }
 
   function addStake(address stake) external onlyOwner {
