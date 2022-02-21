@@ -18,7 +18,7 @@ const UniswapV2Factory = artifacts.require('./UniswapV2Factory.sol')
 const UniswapV2Router = artifacts.require('./UniswapV2Router02.sol')
 const UniswapV2Pair = artifacts.require('./UniswapV2Pair.sol')
 const WETH = artifacts.require('./WETH9.sol')
-const TOKEN = artifacts.require('./DAI.sol')
+const TOKEN = artifacts.require('./TOKEN.sol')
 const StakeClaim = artifacts.require('./StakingRewards.sol')
 
 
@@ -40,7 +40,7 @@ contract('Stake-claim-able-test', function([userOne, userTwo, userThree]) {
     uniswapV2Factory = await UniswapV2Factory.new(userOne)
     weth = await WETH.new()
     uniswapV2Router = await UniswapV2Router.new(uniswapV2Factory.address, weth.address)
-    token = await TOKEN.new(toWei(String(100000)))
+    token = await TOKEN.new("DAI", "DAI", toWei(String(100000)))
 
     // add token liquidity
     await token.approve(uniswapV2Router.address, toWei(String(500)))

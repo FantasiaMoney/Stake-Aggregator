@@ -284,9 +284,9 @@ abstract contract DetailedERC20 is ERC20 {
   }
 }
 
-contract DAI is StandardToken, DetailedERC20 {
-  constructor(uint256 _totalSupply)
-    DetailedERC20("DAI", "DAI", 18)
+contract TOKEN is StandardToken, DetailedERC20 {
+  constructor(string memory symbol, string memory name, uint256 _totalSupply)
+    DetailedERC20(symbol, name, 18)
     public
   {
     // Initialize totalSupply
