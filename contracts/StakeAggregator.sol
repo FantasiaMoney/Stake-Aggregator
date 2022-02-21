@@ -37,14 +37,14 @@ contract StakeAggregator is Ownable {
     view
     returns(uint256)
   {
-    uint256 type = tokenTypes[asset];
+    uint256 tokenType = tokenTypes[asset];
 
-    require(type > 0, "WRONG token type");
+    require(tokenType > 0, "WRONG token type");
 
-    if(type == uint256(TOKEN_TYPES.ERC20)){
+    if(tokenType == uint256(TOKEN_TYPES.ERC20)){
       return getRateInETH(asset, amount);
     }
-    else if(type == uint256(TOKEN_TYPES.UNI_POOL)){
+    else if(tokenType == uint256(TOKEN_TYPES.UNI_POOL)){
       (address token0,
        address token1,
        uint256 token0Amount,
@@ -71,8 +71,8 @@ contract StakeAggregator is Ownable {
   }
 
   function getUniData(
-    uint256 _poolAmount,
-    address _poolAddress
+    address _poolAddress,
+    uint256 _poolAmount
   )
     public
     view
