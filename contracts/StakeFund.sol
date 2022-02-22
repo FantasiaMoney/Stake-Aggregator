@@ -166,14 +166,19 @@ contract StakeFund is Ownable, IERC20 {
     // Get withdraw amount share by share
     //
     // Transfer that _mul/_div of each token we hold to the user
-    uint256 totalStaked = IStake(stakeAddress).balanceOf(address(this))
+    uint256 totalStaked = IStake(stakeAddress).balanceOf(address(this));
 
     // Transfer ERC20 to _withdrawAddress
     for(uint8 j = 0; j < _withdrawAddress.length; j++){
       // calculate withdraw ERC20 share
-      uint256 payoutAmount = fundAmount.mul(_mul[j]).div(_div[j]);
-      if(payoutAmount > 0)
-        token.transfer(_withdrawAddress[j], payoutAmount);
+      uint256 payoutAmount = totalStaked.mul(_mul[j]).div(_div[j]);
+      if(payoutAmount > 0){
+        uint256 balanceBefore = IERC20(coreFundAsset).balanceOf(address(this));
+        IStake(stakeAddress).withdraw(payoutAmount);
+        uint256 balanceAfter = IERC20(coreFundAsset).balanceOf(address(this));
+        uint256 payAmount = balanceAfter.sub(balanceBefore);
+        IERC20(coreFundAsset).transfer(_withdrawAddress[j], payAmount);
+      }
     }
   }
 
