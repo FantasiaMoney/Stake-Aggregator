@@ -123,12 +123,20 @@ contract('Stake-fund-test', function([userOne, userTwo, userThree]) {
   // })
 
   describe('stakeFundDAI', function() {
-    it('Deposit works', async function() {
-      assert.equal(await stakeFundDAI.balanceOf(userOne), 0)
+    it('Deposit shares calculated correct', async function() {
       const toDeposit = await pairDAI.balanceOf(userOne)
+
+      assert.equal(await pairDAI.balanceOf(stakeDAI.address), 0)
+      assert.equal(await stakeFundDAI.balanceOf(userOne), 0)
+      assert.equal(await stakeDAI.balanceOf(stakeFundDAI.address), 0)
+
+
       await pairDAI.approve(stakeFundDAI.address, toDeposit)
       await stakeFundDAI.deposit(toDeposit)
+
       assert.notEqual(await stakeFundDAI.balanceOf(userOne), 0)
+      assert.notEqual(await pairDAI.balanceOf(stakeDAI.address), 0)
+      assert.notEqual(await stakeDAI.balanceOf(stakeFundDAI.address), 0)
     })
   })
 
