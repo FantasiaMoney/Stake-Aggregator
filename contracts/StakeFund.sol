@@ -111,7 +111,7 @@ contract StakeFund is Ownable, IERC20 {
     require(depositAmount > 0, "ZERO_DEPOSIT");
 
     // Transfer core ERC20 coin from sender
-    IERC20(coreFundAsset).safeTransferFrom(msg.sender, address(this), depositAmount)
+    IERC20(coreFundAsset).safeTransferFrom(msg.sender, address(this), depositAmount);
 
     totalWeiDeposited += depositAmount;
 

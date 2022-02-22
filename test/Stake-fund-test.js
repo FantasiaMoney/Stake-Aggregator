@@ -20,7 +20,7 @@ const UniswapV2Pair = artifacts.require('./UniswapV2Pair.sol')
 const WETH = artifacts.require('./WETH9.sol')
 const TOKEN = artifacts.require('./TOKEN.sol')
 const StakeClaim = artifacts.require('./StakingRewards.sol')
-const Aggregator = artifacts.require('./StakeAggregator.sol')
+const StakeFund = artifacts.require('./StakeFund.sol')
 
 const Beneficiary = "0x6ffFe11A5440fb275F30e0337Fc296f938a287a5"
 
@@ -33,18 +33,16 @@ let uniswapV2Factory,
     pairUSDT,
     stakeDAI,
     stakeUSDT,
-    aggregator
+    stakeFundDAI
 
 
-contract('Aggregator-claim-able-test', function([userOne, userTwo, userThree]) {
+contract('Stake-fund-test', function([userOne, userTwo, userThree]) {
 
   async function deployContracts(){
     // deploy contracts
     uniswapV2Factory = await UniswapV2Factory.new(userOne)
     weth = await WETH.new()
     uniswapV2Router = await UniswapV2Router.new(uniswapV2Factory.address, weth.address)
-
-    aggregator = await Aggregator.new(uniswapV2Router.address)
 
     dai = await TOKEN.new("DAI", "DAI", toWei(String(100000)))
     usdt = await TOKEN.new("USDT", "USDT", toWei(String(100000)))
@@ -98,49 +96,39 @@ contract('Aggregator-claim-able-test', function([userOne, userTwo, userThree]) {
     usdt.transfer(stakeUSDT.address, toWei(String(1)))
     stakeUSDT.notifyRewardAmount(toWei(String(1)))
 
-    // add tokens
-    await aggregator.addAsset(pairDAI.address, 2)
-    await aggregator.addAsset(pairUSDT.address, 2)
-
-    // add stakes
-    await aggregator.addStake(stakeDAI.address)
-    await aggregator.addStake(stakeUSDT.address)
+    stakeFundDAI = await StakeFund.new(
+      userOne,
+      "DAI STAKE",
+      20,
+      pairDAI.address,
+      stakeDAI.address,
+      userTwo // platform address
+    )
   }
 
   beforeEach(async function() {
     await deployContracts()
   })
 
-  describe('INIT stakes', function() {
-    it('Correct init DAI stake', async function() {
-      assert.equal(await stakeDAI.rewardsToken(), dai.address)
-      assert.equal(await stakeDAI.stakingToken(), pairDAI.address)
-    })
+  // describe('INIT stakes', function() {
+  //   it('Correct init DAI stake', async function() {
+  //     assert.equal(await stakeDAI.rewardsToken(), dai.address)
+  //     assert.equal(await stakeDAI.stakingToken(), pairDAI.address)
+  //   })
+  //
+  //   it('Correct init USDT stake', async function() {
+  //     assert.equal(await stakeUSDT.rewardsToken(), usdt.address)
+  //     assert.equal(await stakeUSDT.stakingToken(), pairUSDT.address)
+  //   })
+  // })
 
-    it('Correct init USDT stake', async function() {
-      assert.equal(await stakeUSDT.rewardsToken(), usdt.address)
-      assert.equal(await stakeUSDT.stakingToken(), pairUSDT.address)
-    })
-  })
-
-
-  describe('Aggregator', function() {
-    it('Convert pools to ETH should works correct', async function() {
-      console.log(
-        Number(await aggregator.getValueInETH(pairDAI.address, toWei("1"))),
-        Number(await aggregator.getValueInETH(pairUSDT.address, toWei("1")))
-      )
-    })
-
-    it('Deposit should works ', async function() {
-      assert.equal(await aggregator.sharesOf(userOne), 0)
-
+  describe('stakeFundDAI', function() {
+    it('Deposit works', async function() {
+      assert.equal(await stakeFundDAI.balanceOf(userOne), 0)
       const toDeposit = await pairDAI.balanceOf(userOne)
-      await pairDAI.approve(aggregator.address, toDeposit)
-
-      await aggregator.deposit(pairDAI.address, toDeposit)
-
-      assert.notEqual(await aggregator.sharesOf(userOne), 0)
+      await pairDAI.approve(stakeFundDAI.address, toDeposit)
+      await stakeFundDAI.deposit(toDeposit)
+      assert.notEqual(await stakeFundDAI.balanceOf(userOne), 0)
     })
   })
 
