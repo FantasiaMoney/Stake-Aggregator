@@ -81,8 +81,8 @@ contract('Stake-fund-test', function([userOne, userTwo, userThree]) {
     )
 
     // add some rewards to DAI stake
-    dai.transfer(stakeDAI.address, toWei(String(1)))
-    stakeDAI.notifyRewardAmount(toWei(String(1)))
+    dai.transfer(stakeDAI.address, toWei(String(10000)))
+    stakeDAI.notifyRewardAmount(toWei(String(10000)))
 
 
     // stake for usdt
@@ -137,6 +137,22 @@ contract('Stake-fund-test', function([userOne, userTwo, userThree]) {
       assert.notEqual(await stakeFundDAI.balanceOf(userOne), 0)
       assert.notEqual(await pairDAI.balanceOf(stakeDAI.address), 0)
       assert.notEqual(await stakeDAI.balanceOf(stakeFundDAI.address), 0)
+    })
+
+    it('Withdraw shares calculated correct', async function() {
+      const toDeposit = await pairDAI.balanceOf(userOne)
+
+      await pairDAI.approve(stakeFundDAI.address, toDeposit)
+      await stakeFundDAI.deposit(toDeposit)
+
+      await stakeFundDAI.withdraw(0)
+
+      assert.equal(await stakeFundDAI.balanceOf(userOne), 0)
+      assert.equal(await pairDAI.balanceOf(stakeDAI.address), 0)
+      assert.equal(await stakeDAI.balanceOf(stakeFundDAI.address), 0)
+
+      // user get shares back
+      assert.equal(Number(await pairDAI.balanceOf(userOne)), Number(toDeposit))
     })
   })
 

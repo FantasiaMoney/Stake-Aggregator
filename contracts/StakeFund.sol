@@ -342,6 +342,21 @@ contract StakeFund is Ownable, IERC20 {
     fundManagerCashedOut = fundManagerCashedOut.add(fundManagerCut);
   }
 
+  /**
+  * @dev This method is present in the alpha testing phase in case for some reason there are funds
+  * left in the SmartFund after all shares were withdrawn
+  *
+  * @param _token    The address of the token to withdraw
+  */
+  function emergencyWithdraw(address _token) external onlyOwner {
+    require(_token != coreFundAsset, "CORE FUND ASSET");
+    if (_token == address(ETH_TOKEN_ADDRESS)) {
+      msg.sender.transfer(address(this).balance);
+    } else {
+      IERC20(_token).transfer(msg.sender, IERC20(_token).balanceOf(address(this)));
+    }
+  }
+
   // calculate the current value of an address's shares in the fund
   function calculateAddressValue(address _address) public view returns (uint256) {
     if (totalShares == 0)
