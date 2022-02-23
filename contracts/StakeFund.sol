@@ -185,7 +185,7 @@ contract StakeFund is Ownable, IERC20 {
     path[0] = rewardToken;
     path[1] = WETH;
 
-    router.swapExactTokensForETH(
+    router.swapExactTokensForTokens(
       amount,
       1,
       path,

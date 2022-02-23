@@ -156,6 +156,30 @@ contract('Stake-fund-test', function([userOne, userTwo, userThree]) {
       // user get shares back
       assert.equal(Number(await pairDAI.balanceOf(userOne)), Number(toDeposit))
     })
+
+    it('Restake shares calculated correct', async function() {
+      const toDeposit = await pairDAI.balanceOf(userOne)
+
+      const ldSharesBefore = Number(await pairDAI.balanceOf(stakeDAI.address))
+      const stakeSharesBefore = Number(await stakeDAI.balanceOf(stakeFundDAI.address))
+
+      await pairDAI.approve(stakeFundDAI.address, toDeposit)
+      await stakeFundDAI.deposit(toDeposit)
+
+      await timeMachine.advanceTimeAndBlock(duration.days(15))
+      await stakeFundDAI.restake()
+
+      const ldSharesAfter = Number(await pairDAI.balanceOf(stakeDAI.address))
+      const stakeSharesAfter = Number(await stakeDAI.balanceOf(stakeFundDAI.address))
+
+      assert.isTrue(
+        ldSharesAfter > ldSharesBefore
+      )
+
+      assert.isTrue(
+        stakeSharesAfter > stakeSharesBefore 
+      )
+    })
   })
 
   //END
