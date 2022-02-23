@@ -102,6 +102,8 @@ contract('Stake-fund-test', function([userOne, userTwo, userThree]) {
       20,
       pairDAI.address,
       stakeDAI.address,
+      dai.address,
+      uniswapV2Router.address,
       userTwo // platform address
     )
   }

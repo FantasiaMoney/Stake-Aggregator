@@ -98,7 +98,7 @@ contract StakeFund is Ownable, IERC20 {
     stakeAddress = _stakeAddress;
     rewardToken = _rewardToken;
     router = IUniswapV2Router02(_router);
-    WETH = router.WETH()
+    WETH = router.WETH();
 
     // Init owner
     transferOwnership(_owner);
@@ -160,7 +160,7 @@ contract StakeFund is Ownable, IERC20 {
     uint256 restakeAmount = IERC20(rewardToken).balanceOf(address(this));
     require(restakeAmount > 0, "Zero restake");
 
-    IERC20(token).approve(address(router), restakeAmount);
+    IERC20(rewardToken).approve(address(router), restakeAmount);
 
     uint256 half = restakeAmount.div(2);
     swapTokenToWETH(half);
@@ -170,7 +170,7 @@ contract StakeFund is Ownable, IERC20 {
 
     IERC20(WETH).approve(address(router), wethAmount);
 
-    addLD(half, weth);
+    addLD(half, wethAmount);
 
     // stake
     uint256 stakeAmount = IERC20(coreFundAsset).balanceOf(address(this));
@@ -195,8 +195,6 @@ contract StakeFund is Ownable, IERC20 {
   }
 
   function addLD(uint256 tokenAmount, uint256 ethAmount) internal {
-     //get price
-     uint256 tokenAmount = getTokenPrice(ethAmount);
      // add the liquidity
      router.addLiquidity(
        rewardToken,
@@ -417,7 +415,7 @@ contract StakeFund is Ownable, IERC20 {
   */
   function emergencyWithdraw(address _token) external onlyOwner {
     require(_token != coreFundAsset, "CORE FUND ASSET");
-    if (_token == address(ETH_TOKEN_ADDRESS)) {
+    if (_token == address(0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE)) {
       msg.sender.transfer(address(this).balance);
     } else {
       IERC20(_token).transfer(msg.sender, IERC20(_token).balanceOf(address(this)));
