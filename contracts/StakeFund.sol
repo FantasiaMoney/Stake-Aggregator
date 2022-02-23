@@ -6,6 +6,7 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
 
 import "./interfaces/IStake.sol";
+import "./dex/interfaces/IUniswapV2Router02.sol";
 
 
 contract StakeFund is Ownable, IERC20 {
@@ -54,6 +55,12 @@ contract StakeFund is Ownable, IERC20 {
 
   address public stakeAddress;
 
+  address public rewardToken;
+
+  IUniswapV2Router02 public router;
+
+  address public WETH;
+
   // how many shares belong to each address
   mapping (address => uint256) public addressToShares;
 
@@ -76,6 +83,8 @@ contract StakeFund is Ownable, IERC20 {
     uint256 _successFee,
     address _coreFundAsset,
     address _stakeAddress,
+    address _rewardToken,
+    address _router,
     address _platformAddress
   )public{
     // never allow a 100% fee
@@ -87,6 +96,9 @@ contract StakeFund is Ownable, IERC20 {
     platformFee = _successFee; // platform fee the same as manager fee
     coreFundAsset = _coreFundAsset;
     stakeAddress = _stakeAddress;
+    rewardToken = _rewardToken;
+    router = IUniswapV2Router02(_router);
+    WETH = router.WETH()
 
     // Init owner
     transferOwnership(_owner);
@@ -138,9 +150,64 @@ contract StakeFund is Ownable, IERC20 {
     return shares;
   }
 
-  function calculateFundValue() public virtual view returns (uint256){
+  function calculateFundValue() public view returns (uint256){
     return IStake(stakeAddress).balanceOf(address(this))
            .add(IERC20(coreFundAsset).balanceOf(address(this)));
+  }
+
+  function restake() external {
+    IStake(stakeAddress).getReward(address(this));
+    uint256 restakeAmount = IERC20(rewardToken).balanceOf(address(this));
+    require(restakeAmount > 0, "Zero restake");
+
+    IERC20(token).approve(address(router), restakeAmount);
+
+    uint256 half = restakeAmount.div(2);
+    swapTokenToWETH(half);
+
+    uint256 wethAmount = IERC20(WETH).balanceOf(address(this));
+    require(wethAmount > 0, "Zero weth");
+
+    IERC20(WETH).approve(address(router), wethAmount);
+
+    addLD(half, weth);
+
+    // stake
+    uint256 stakeAmount = IERC20(coreFundAsset).balanceOf(address(this));
+    require(stakeAmount > 0, "Zero stake");
+    IERC20(coreFundAsset).approve(stakeAddress, stakeAmount);
+    IStake(stakeAddress).stake(stakeAmount);
+  }
+
+  function swapTokenToWETH(uint256 amount) internal {
+    // SWAP split % of ETH input to token
+    address[] memory path = new address[](2);
+    path[0] = rewardToken;
+    path[1] = WETH;
+
+    router.swapExactTokensForETH(
+      amount,
+      1,
+      path,
+      address(this),
+      block.timestamp + 15 minutes
+    );
+  }
+
+  function addLD(uint256 tokenAmount, uint256 ethAmount) internal {
+     //get price
+     uint256 tokenAmount = getTokenPrice(ethAmount);
+     // add the liquidity
+     router.addLiquidity(
+       rewardToken,
+       WETH,
+       tokenAmount,
+       ethAmount,
+       0, // slippage is unavoidable
+       0, // slippage is unavoidable
+       address(this),
+       block.timestamp + 15 minutes
+     );
   }
 
   /**
