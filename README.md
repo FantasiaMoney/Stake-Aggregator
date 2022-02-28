@@ -22,38 +22,13 @@ Make sure You updated PairHash in config.js and test/contracts/dex/libraries/Uni
 # Description
 
 ```
-VToken - not transfer able token (bind with msg.sender)
+Main contract
 
-
-VTokenSale - user can buy vToken via ETH by token/eth rate
-
-
-VTokenToToken - user can convert vToken to token with time based rate
-
-
-TokenToVtoken - user can convert token to vToken with rate 1 to 1
-
-
-Token - standard mintable and burnable token
-
-
-Minter - allow mint for permitted addresses
-
-
-LDManager - mint tokens and add LD with token/eth
-
-
-WalletDistributor - owners of vtoken can claim from this wallet each 30 days
-
-
-Reserve - fetch can split ETH with dex, sale and reserve. And users who deposiyed tokens
-in reserve can sell (also they can earn more or lose, dependse on sale rate)
-
-DepositsDB - record each deposit from fetch, then vToken converter use this data
+StakeFund.sol allow deposit and stake, claim rewards and restake, and unstake and withdraw by share
 ```
 
+# Todo
 
-# if Router-Hash-test failed
 ```
-Make sure You updated PairHash in config.js and test/contracts/dex/libraries/UniswapV2Library.sol
+Todo aggegator contract which will calculate which of StakeFund.sol pool use for get best profit for ETH input
 ```
