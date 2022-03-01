@@ -112,11 +112,11 @@ contract StakeFund is Ownable, IERC20 {
     }
   }
 
-  function depositFor(uint256 depositAmount, address forAddress) internal returns (uint256) {
+  function depositFor(uint256 depositAmount, address forAddress) external returns (uint256) {
     _deposit(depositAmount, forAddress);
   }
 
-  function deposit(uint256 depositAmount) internal returns (uint256) {
+  function deposit(uint256 depositAmount) external returns (uint256) {
     _deposit(depositAmount, msg.sender);
   }
 
