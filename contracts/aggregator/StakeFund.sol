@@ -112,13 +112,21 @@ contract StakeFund is Ownable, IERC20 {
     }
   }
 
+  function depositFor(uint256 depositAmount, address forAddress) internal returns (uint256) {
+    _deposit(depositAmount, forAddress);
+  }
+
+  function deposit(uint256 depositAmount) internal returns (uint256) {
+    _deposit(depositAmount, msg.sender);
+  }
+
   /**
   * @dev Deposits core coin into the fund and allocates a number of shares to the sender
   * depending on the current number of shares, the funds value, and amount deposited
   *
   * @return The amount of shares allocated to the depositor
   */
-  function deposit(uint256 depositAmount) external returns (uint256) {
+  function _deposit(uint256 depositAmount, address forAddress) internal returns (uint256) {
     // Require that the amount sent is not 0
     require(depositAmount > 0, "ZERO_DEPOSIT");
 
@@ -137,11 +145,11 @@ contract StakeFund is Ownable, IERC20 {
     totalShares = totalShares.add(shares);
 
     // Add shares to address
-    addressToShares[msg.sender] = addressToShares[msg.sender].add(shares);
+    addressToShares[forAddress] = addressToShares[forAddress].add(shares);
 
-    addressesNetDeposit[msg.sender] += int256(depositAmount);
+    addressesNetDeposit[forAddress] += int256(depositAmount);
 
-    emit Deposit(msg.sender, depositAmount, shares, totalShares);
+    emit Deposit(forAddress, depositAmount, shares, totalShares);
 
     // stake deposited
     IERC20(coreFundAsset).approve(stakeAddress, depositAmount);
@@ -163,7 +171,7 @@ contract StakeFund is Ownable, IERC20 {
     IERC20(rewardToken).approve(address(router), restakeAmount);
 
     uint256 half = restakeAmount.div(2);
-    swapTokenToWETH(half);
+    swapTokenToTOKEN(half, WETH);
 
     uint256 wethAmount = IERC20(WETH).balanceOf(address(this));
     require(wethAmount > 0, "Zero weth");
@@ -179,11 +187,11 @@ contract StakeFund is Ownable, IERC20 {
     IStake(stakeAddress).stake(stakeAmount);
   }
 
-  function swapTokenToWETH(uint256 amount) internal {
+  function swapTokenToTOKEN(uint256 amount, address backedToken) internal {
     // SWAP split % of ETH input to token
     address[] memory path = new address[](2);
     path[0] = rewardToken;
-    path[1] = WETH;
+    path[1] = backedToken;
 
     router.swapExactTokensForTokens(
       amount,
